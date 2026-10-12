@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{database/schema.sql,public/**,style.css}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/app.js", "destination": "/public/app.js" },
+    { "source": "/(.*)", "destination": "/public/index.html" }
+  ]
+}
