@@ -2,11 +2,12 @@
   "version": 2,
   "functions": {
     "api/index.js": {
-      "includeFiles": "{database/schema.sql,public/**,style.css}"
+      "includeFiles": "{database/schema.sql,public/**}"
     }
   },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/style.css", "destination": "/public/style.css" },
     { "source": "/app.js", "destination": "/public/app.js" },
     { "source": "/(.*)", "destination": "/public/index.html" }
   ]
