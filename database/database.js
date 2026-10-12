@@ -3,7 +3,14 @@ const fs = require('fs');
 const Database = require('better-sqlite3');
 
 const databaseDirectory = __dirname;
-const database = new Database(path.join(databaseDirectory, 'tridavo.db'));
+
+const databasePath =
+  process.env.DB_PATH ||
+  path.join(databaseDirectory, 'tridavo.db');
+
+fs.mkdirSync(path.dirname(databasePath), { recursive: true });
+
+const database = new Database(databasePath);
 database.pragma('foreign_keys = ON');
 
 const schema = fs.readFileSync(path.join(databaseDirectory, 'schema.sql'), 'utf8');

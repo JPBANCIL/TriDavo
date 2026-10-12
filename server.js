@@ -5,14 +5,39 @@ const path = require('path');
 const database = require('./database/database');
 
 const app = express();
-const port = 3000;
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+const port = process.env.PORT || 3000;
 
-app.use(express.json());
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be configured in production');
+}
+
+const fs = require('fs');
+const SQLiteStore = require('connect-sqlite3')(session);
+
+const sessionDirectory =
+  process.env.SESSION_DB_DIR || path.join(__dirname, 'database');
+
+fs.mkdirSync(sessionDirectory, { recursive: true });
+
 app.use(session({
+  store: new SQLiteStore({
+    dir: sessionDirectory,
+    db: 'sessions.sqlite',
+    table: 'sessions',
+    concurrentDB: true
+  }),
   secret: process.env.SESSION_SECRET || 'tridavo-local-session-secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax', maxAge: 1000 * 60 * 60 * 24 * 7 }
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 1000 * 60 * 60 * 24 * 7
+  }
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -347,4 +372,6 @@ app.get('/style.css', (request, response) => response.sendFile(path.join(__dirna
 app.use('/api', (request, response) => response.status(404).json({ message: 'API route not found.' }));
 
 app.get('*', (request, response) => response.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.listen(port, () => console.log(`TRIDAVO server running on http://localhost:${port}`));
+app.listen(port, '0.0.0.0', () => {
+  console.log(`TRIDAVO server running on port ${port}`);
+});
